@@ -203,6 +203,6 @@ def generate_histogram(dictionary, kolko):
 #graph_message_count(5000)
 
 #graph_word_count(5000)
-print()
-print(get_reacts_given('❤'))
+#print()
+#print(get_reacts_given('❤'))
 
