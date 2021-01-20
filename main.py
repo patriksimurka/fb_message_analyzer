@@ -3,6 +3,7 @@
 import json
 import matplotlib.pyplot as plt
 from datetime import datetime
+import itertools
 
 data = []
 with open("message_3.json", "r") as read_file:
@@ -78,10 +79,7 @@ def graph_message_count(resolution=10):
 	plt.title('Správy v jebačoch')
 
 	plt.show()
-
-
 	
-
 def pocet_sprav(ab=first_timestamp, until=last_timestamp):
 	result = {}
 	for i in data:
@@ -95,10 +93,65 @@ def pocet_sprav(ab=first_timestamp, until=last_timestamp):
 def pocet_sprav_s_reactami():
 	return pocet_sprav(reactions_enabled,)
 
+def get_word_histogram(ab=first_timestamp, until=last_timestamp, **kwargs):
+	result = {}
+	for i in data:
+		for j in i['messages']:
+			if ab <= j['timestamp_ms'] <= until:
+				if 'kto' in kwargs:
+					if j['sender_name'] == kwargs['kto']:
+						try:
+							for slovo in j['content'].split():
+								try:
+									slovo = fix_text(slovo)
+								except UnicodeDecodeError:
+									pass
+								if len(slovo) > 3:
+									result[slovo] = result.get(slovo, 0) + 1
+						except KeyError:
+							pass
 
+				else:
+					try:
+						for slovo in j['content'].split():
+							try:
+								slovo = fix_text(slovo)
+							except UnicodeDecodeError:
+								pass
+							if len(slovo) > 3:
+								result[slovo] = result.get(slovo, 0) + 1
+					except KeyError:
+						pass
+
+	return {k: v for k, v in sorted(result.items(), key=lambda item: item[1], reverse=True)}
+
+def get_word_count(word):
+	count = 0
+	for i in data:
+		for j in i['messages']:
+			try:
+				for slovo in j['content'].split():
+					try:
+						if word == fix_text(slovo):
+							count += 1
+					except UnicodeDecodeError:
+						pass
+			except KeyError:
+				pass
+
+	return count
+
+def generate_histogram(dictionary, kolko):
+	dictionary = dict(itertools.islice(dictionary.items(), kolko))
+	plt.bar(*zip(*dictionary.items()))
+	plt.xticks(rotation='vertical')
+	plt.title('vsetci strvrtak-piatak slova dlhsie ako 3')
+	plt.show()
+
+generate_histogram(get_word_histogram(ab=1567359046000, until=9999999999999999999),100)
 #generate_plot(fix_dict(pocet_sprav))
 
 #print(pocet_sprav())
 
-graph_message_count(1000)
+#graph_message_count(5000)
 
